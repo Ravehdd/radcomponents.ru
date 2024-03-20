@@ -41,7 +41,7 @@ class DeviceAPI(APIView):
         serializer.is_valid()
         name = request.data["device_name"]
         device_need = request.data["device_need"]
-
+        print(request.data)
         device_id = Devices.objects.get(device_name=name).device_id
         connection_data = Connection.objects.filter(device_id=device_id).values()
         # device_id = Devices.objects.get(device_name=name).id
@@ -56,7 +56,7 @@ class DeviceAPI(APIView):
 
         data = OrderData.objects.all()
         data.delete()
-
+        print(amount_need_all)
         for i in range(len(amount_need_all)):
             data_instance = OrderData.objects.create(comp_name=comps_data[i][0], in_stock=comps_data[i][1], amount_need=amount_need_all[i], cat=comps_data[i][2], enough=1)
             data_instance.save()
@@ -127,21 +127,22 @@ class UpdateDBAPI(APIView):
         return Response({"status": 200, "comp_names": values, "categories": categories})
 
     def post(self, request):
-        serializer = UpdateSerializer(data=request.data)
-        serializer.is_valid()
         for comp in request.data:
-            amount_add = int(comp["amount_add"])
-            try:
-                comp_name = comp["comp_name"]
-                component = Components.objects.get(comp_name=comp_name)
-                new_amount = component.amount + amount_add
-                Components.objects.filter(comp_name=comp_name).update(amount=new_amount)
-            except:
-                component = Category.objects.get(cat_name=comp["category"])
-                category = component
-                Components.objects.create(comp_name=comp["comp_name"], category=category, amount=comp["amount_add"])
+            serializer = UpdateSerializer(data=comp)
+            if serializer.is_valid():
+                amount_add = int(comp["amount_add"])
+                try:
+                    comp_name = comp["comp_name"]
+                    component = Components.objects.get(comp_name=comp_name)
+                    new_amount = component.amount + amount_add
+                    Components.objects.filter(comp_name=comp_name).update(amount=new_amount)
+                except:
+                    component = Category.objects.get(cat_name=comp["category"])
+                    category = component
+                    Components.objects.create(comp_name=comp["comp_name"], category=category, amount=comp["amount_add"])
 
-        return redirect("home")
+            return redirect("home")
+        return Response({"status": 400, "response": "Invalid request data"})
 
 
 class AddNewDeviceAPI(APIView):
@@ -152,23 +153,23 @@ class AddNewDeviceAPI(APIView):
 
     def post(self, request):
         serializer = AddNewDeviceSerializer(data=request.data)
-        serializer.is_valid()
-        device_name = request.data["device_name"]
-        comp_data = request.data["comp_data"]
-        # try:
-        device = Devices.objects.filter(device_name=device_name)
-        if device:
-            # print(device)
-            return Response({"status": 400, "response": "Device already exists"})
-        # except :
-        else:
-            Devices.objects.create(device_name=device_name)
-            device_id = Devices.objects.get(device_name=device_name).device_id
-            for component in comp_data:
-                comp_name = component["comp_name"]
-                amount_need = component["amount_need"]
-                comp_id = Components.objects.get(comp_name=comp_name).comp_id
-                Connection.objects.create(device_id=device_id, comp_id=comp_id, amount_need=amount_need)
+        if serializer.is_valid():
+            device_name = request.data["device_name"]
+            comp_data = request.data["comp_data"]
+            # try:
+            device = Devices.objects.filter(device_name=device_name)
+            if device:
+                # print(device)
+                return Response({"status": 400, "response": "Device already exists"})
+            # except :
+            else:
+                Devices.objects.create(device_name=device_name)
+                device_id = Devices.objects.get(device_name=device_name).device_id
+                for component in comp_data:
+                    comp_name = component["comp_name"]
+                    amount_need = component["amount_need"]
+                    comp_id = Components.objects.get(comp_name=comp_name).comp_id
+                    Connection.objects.create(device_id=device_id, comp_id=comp_id, amount_need=amount_need)
             # Devices.objects.create(device_name=device_name)
             # device_id = Devices.objects.get(device_name=device_name).id
             # for component in comp_data:
@@ -178,20 +179,20 @@ class AddNewDeviceAPI(APIView):
             #     Connection.objects.create(device_id=device_id, comp_id=comp_id, amount_need=amount_need)
 
             return Response({"status": 200, "response": "Device has been successfully added to database! "})
+        return Response({"status": 400, "response": "Invalid request data"})
 
-
-class MoveDataAPI(APIView):
-    def get(self, request):
-        with sqlite3.connect("db.sqlite3") as connection:
-            cur = connection.cursor()
-            # data = cur.execute("SELECT * FROM components_components ORDER BY comp_id").fetchall()
-            # print(data)
-            # for d in data:
-            #     cat = Category.objects.get(cat_id=d[3])
-            #     Components.objects.create(comp_name=d[1], amount=d[2], category=cat)
-            data = cur.execute("SELECT * FROM components_connection ORDER BY id").fetchall()
-            print(data)
-            for d in data:
-
-                Connection.objects.create(device_id=d[1], comp_id=d[2], amount_need=d[3])
-            return Response({"ok": "ok"})
+# class MoveDataAPI(APIView):
+#     def get(self, request):
+#         with sqlite3.connect("db.sqlite3") as connection:
+#             cur = connection.cursor()
+#             # data = cur.execute("SELECT * FROM components_components ORDER BY comp_id").fetchall()
+#             # print(data)
+#             # for d in data:
+#             #     cat = Category.objects.get(cat_id=d[3])
+#             #     Components.objects.create(comp_name=d[1], amount=d[2], category=cat)
+#             data = cur.execute("SELECT * FROM components_connection ORDER BY id").fetchall()
+#             print(data)
+#             for d in data:
+#
+#                 Connection.objects.create(device_id=d[1], comp_id=d[2], amount_need=d[3])
+#             return Response({"ok": "ok"})

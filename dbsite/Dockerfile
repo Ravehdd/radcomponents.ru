@@ -20,6 +20,6 @@ ENV APP_NAME=RAD_ELEMENTS
 
 #RUN pip install -r requirements.txt
 
-CMD gunicorn dbsite.wsgi:application -b 0.0.0.0:8000
+CMD gunicorn dbsite.wsgi:application -b radcomponents.ru:8000
 #CMD python manage.py runserver 0.0.0.0:8000
 

@@ -18,7 +18,7 @@ class CompSerializer(serializers.Serializer):
 class UpdateSerializer(serializers.Serializer): # new
     comp_name = serializers.CharField(max_length=255)
     # new_comp_name = serializers.CharField(max_length=255)
-    category = serializers.IntegerField()
+    category = serializers.CharField()
     amount_add = serializers.IntegerField()
 
 
