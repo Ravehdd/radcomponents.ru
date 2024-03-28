@@ -1,0 +1,19 @@
+{% extends "components/base.html" %}
+
+
+{% block content %}
+
+<h1>{{title}}</h1>
+
+<form method="post">
+  {% csrf_token %}
+    <p><label class="form-label" for="{{ form.name.id_for_label }}">{{ form.name.label }}:</label>{{ form.name }}</p>
+        <div class="form-error">{{ form.name.errors }}</div>
+
+    <p><label class="form-label" for="{{ form.device_need.id_for_label }}">{{ form.device_need.label }}:</label>{{ form.device_need }}</p>
+        <div class="form-error">{{ form.device_need.errors }}</div><p>
+
+  <input type="submit" value="Submit">
+</form>
+
+{% endblock %}

@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  db_fc:
+    image: postgres:latest
+    container_name: db_fc
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: rad_elements
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: postgres -c listen_addresses='*'
+#    env_file:
+#      - .env
+  rad_components:
+    build:
+#      dockerfile: djsite/Dockerfile
+      context: ./dbsite
+    depends_on:
+      - db_fc
+    ports:
+      - "8000:8000"
+#    image: downloader
+#    container_name: downloader
+    environment:
+      DEBUG: False
+      POSTGRES_HOST: "db_fc"
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "1234"
+      POSTGRES_DB: "rad_elements"
+    volumes:
+      - static_volume:/code/static
+      - media_volume:/code/media
+
+#    env_file:
+#      - .env
+#    command:
+#        - /usr/local/bin/gunicorn
+#        - djsite.wsgi:application
+#        - --bind
+#        - 0.0.0.0:8000
+#
+#
+#
+#  nginx:
+#    container_name: nginx
+#    image: nginx
+#    volumes:
+#      - static_volume:/code/static
+#      - media_volume:/code/media
+#    depends_on:
+#      - downloader
+#    ports:
+#      - "8001:8001"
+  frontend:
+    build:
+      context: ./RadElements/radelements
+#      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+
