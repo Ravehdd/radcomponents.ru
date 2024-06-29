@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 from .serializers import *
 from .utils import *
 import sqlite3
-
-
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 
 
 # class MoveDataAPI(APIView):
@@ -22,9 +22,17 @@ import sqlite3
 #             return Response({"ok":"ok"})
 
 
-class CompAPIView(generics.ListAPIView):
-    queryset = Components.objects.all()
-    serializer_class = IndexSerializer
+class CompAPIView(APIView):
+    # queryset = Components.objects.all()
+    # serializer_class = IndexSerializer
+    def get(self, request):
+        # comp_list = cache.get("comp_list")
+        # if comp_list:
+        #     return Response(comp_list)
+        data = Components.objects.all().values("comp_id", "comp_name", "amount", "category")
+        print(data)
+        # cache.set("comp_list", data, 60)
+        return Response(data)
     # permission_classes = (IsAuthenticated, )
 
 
@@ -129,19 +137,23 @@ class UpdateDBAPI(APIView):
     def post(self, request):
         for comp in request.data:
             serializer = UpdateSerializer(data=comp)
-            if serializer.is_valid():
+            # if serializer.is_valid():
+            if True:
                 amount_add = int(comp["amount_add"])
                 try:
                     comp_name = comp["comp_name"]
                     component = Components.objects.get(comp_name=comp_name)
                     new_amount = component.amount + amount_add
                     Components.objects.filter(comp_name=comp_name).update(amount=new_amount)
+
                 except:
                     component = Category.objects.get(cat_name=comp["category"])
                     category = component
                     Components.objects.create(comp_name=comp["comp_name"], category=category, amount=comp["amount_add"])
+                    print("Success new ")
 
-            return redirect("home")
+
+            # return redirect("home")
         return Response({"status": 400, "response": "Invalid request data"})
 
 
